@@ -350,6 +350,7 @@ void ScalarEnumerationTraits<ELFYAML::ELF_EM>::enumeration(
   ECase(EM_LANAI);
   ECase(EM_BPF);
   ECase(EM_VE);
+  ECase(EM_Z80);
   ECase(EM_CSKY);
   ECase(EM_LOONGARCH);
 #undef ECase

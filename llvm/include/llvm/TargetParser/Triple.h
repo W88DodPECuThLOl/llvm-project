@@ -106,6 +106,7 @@ public:
     renderscript32, // 32-bit RenderScript
     renderscript64, // 64-bit RenderScript
     ve,             // NEC SX-Aurora Vector Engine
+    z80,            // Z80: Zilog Z80
     LastArchType = ve
   };
   enum SubArchType {
@@ -970,6 +971,11 @@ public:
   /// Tests whether the target is eBPF.
   bool isBPF() const {
     return getArch() == Triple::bpfel || getArch() == Triple::bpfeb;
+  }
+
+  /// Tests whether the target is Z80.
+  bool isZ80() const {
+    return getArch() == Triple::z80;
   }
 
   /// Tests whether the target supports comdat
