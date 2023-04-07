@@ -2,12 +2,17 @@
 // is distributed under the Apache License v2.0 with LLVM Exceptions (see
 // LICENSE.TXT for details). This file is licensed under the same license.
 
-#ifndef LLVM_LIB_TARGET_Z80_CAHPV4TARGETMACHINE_H
-#define LLVM_LIB_TARGET_Z80_CAHPV4TARGETMACHINE_H
+#ifndef LLVM_LIB_TARGET_Z80_Z80TARGETMACHINE_H
+#define LLVM_LIB_TARGET_Z80_Z80TARGETMACHINE_H
 
-#include "llvm/CodeGen/SelectionDAGTargetInfo.h"
-#include "llvm/IR/DataLayout.h"
+#include "MCTargetDesc/Z80MCTargetDesc.h"
+
+#include "llvm/CodeGen/Passes.h"
+#include "llvm/CodeGen/SelectionDAGISel.h"
+#include "llvm/CodeGen/TargetFrameLowering.h"
 #include "llvm/Target/TargetMachine.h"
+
+#include <optional>
 
 namespace llvm {
 class Z80TargetMachine : public LLVMTargetMachine {
@@ -19,13 +24,13 @@ public:
                     std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM,
                     CodeGenOpt::Level OL, bool JIT);
 
+  // Pass Pipeline Configuration
   TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
 
   TargetLoweringObjectFile *getObjFileLowering() const override {
     return TLOF.get();
   }
 };
-Target &getTheZ80Target();
 } // namespace llvm
 
-#endif
+#endif // LLVM_LIB_TARGET_Z80_Z80TARGETMACHINE_H

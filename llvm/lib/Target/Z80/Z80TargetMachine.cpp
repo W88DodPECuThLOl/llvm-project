@@ -17,15 +17,27 @@ extern "C" void LLVMInitializeZ80Target() {
   RegisterTargetMachine<Z80TargetMachine> X(getTheZ80Target());
 }
 
+/**
+ * @brief datalayoutを割り出す
+ * @param[in] TT  アーキテクチャ等の情報
+ * @return datalayoutの文字列
+ */
 static std::string computeDataLayout(const Triple &TT) {
-  return "e"        // Little endian
-         "-m:e"     // ELF name manging
-         "-p:16:16" // 16-bit pointers, 16 bit aligned
-         "-i16:16"  // 16 bit integers, 16 bit aligned
-         "-n16"     // 16 bit native integer width
-         "-S16";    // 16 bit natural stack alignment
+  // datalayoutのドキュメント
+  // https://llvm.org/docs/LangRef.html#langref-datalayout
+  return
+    "e"        // Little endian
+    "-m:e"     // ELF name manging
+    "-p:16:8"  // 16-bit pointers, 8 bit aligned
+    "-i8:8"    //  8 bit integers, 8 bit aligned
+    "-i16:8"   // 16 bit integers, 8 bit aligned
+    "-n8:16"   //  8 bit and 16bit native integer widths // メモ)8bitと16bitの計算ができるので2つ設定
+  ;
 }
 
+/**
+ * @return Relocation model type
+ */
 static Reloc::Model getEffectiveRelocModel(const Triple &TT,
                                            std::optional<Reloc::Model> RM) {
   if (!RM.has_value())

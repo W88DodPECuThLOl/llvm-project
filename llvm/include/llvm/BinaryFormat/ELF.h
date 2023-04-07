@@ -313,6 +313,7 @@ enum {
   EM_COOL = 217,          // iCelero CoolEngine
   EM_NORC = 218,          // Nanoradio Optimized RISC
   EM_CSR_KALIMBA = 219,   // CSR Kalimba architecture family
+  EM_Z80 = 220,           // Zilog Z80
   EM_AMDGPU = 224,        // AMD GPU architecture
   EM_RISCV = 243,         // RISC-V
   EM_LANAI = 244,         // Lanai 32-bit processor
@@ -320,7 +321,6 @@ enum {
   EM_VE = 251,            // NEC SX-Aurora VE
   EM_CSKY = 252,          // C-SKY 32-bit processor
   EM_LOONGARCH = 258,     // LoongArch
-  EM_Z80 = 800,           // Z80: Zilog Z80
 };
 
 // Object file classes.

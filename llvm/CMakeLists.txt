@@ -453,6 +453,7 @@ set(LLVM_ALL_TARGETS
   WebAssembly
   X86
   XCore
+  Z80
   )
 
 # List of targets with JIT support:
