@@ -1348,9 +1348,9 @@ define i1 @bool_reduction_v8i32(<8 x i32> %x, <8 x i32> %y) {
 ; AVX1-NEXT:    vextractf128 $1, %ymm1, %xmm2
 ; AVX1-NEXT:    vextractf128 $1, %ymm0, %xmm3
 ; AVX1-NEXT:    vpminud %xmm2, %xmm3, %xmm2
-; AVX1-NEXT:    vpsubd %xmm2, %xmm3, %xmm2
+; AVX1-NEXT:    vpxor %xmm2, %xmm3, %xmm2
 ; AVX1-NEXT:    vpminud %xmm1, %xmm0, %xmm1
-; AVX1-NEXT:    vpsubd %xmm1, %xmm0, %xmm0
+; AVX1-NEXT:    vpxor %xmm1, %xmm0, %xmm0
 ; AVX1-NEXT:    vpor %xmm2, %xmm0, %xmm0
 ; AVX1-NEXT:    vptest %xmm0, %xmm0
 ; AVX1-NEXT:    sete %al
@@ -1360,7 +1360,7 @@ define i1 @bool_reduction_v8i32(<8 x i32> %x, <8 x i32> %y) {
 ; AVX2-LABEL: bool_reduction_v8i32:
 ; AVX2:       # %bb.0:
 ; AVX2-NEXT:    vpminud %ymm1, %ymm0, %ymm1
-; AVX2-NEXT:    vpsubd %ymm1, %ymm0, %ymm0
+; AVX2-NEXT:    vpxor %ymm1, %ymm0, %ymm0
 ; AVX2-NEXT:    vptest %ymm0, %ymm0
 ; AVX2-NEXT:    sete %al
 ; AVX2-NEXT:    vzeroupper
@@ -1392,14 +1392,14 @@ define i1 @bool_reduction_v16i16(<16 x i16> %x, <16 x i16> %y) {
 ; SSE2-NEXT:    pcmpeqb %xmm2, %xmm0
 ; SSE2-NEXT:    pand %xmm1, %xmm0
 ; SSE2-NEXT:    pmovmskb %xmm0, %eax
-; SSE2-NEXT:    cmpw $-1, %ax
+; SSE2-NEXT:    xorl $65535, %eax # imm = 0xFFFF
 ; SSE2-NEXT:    sete %al
 ; SSE2-NEXT:    retq
 ;
 ; SSE42-LABEL: bool_reduction_v16i16:
 ; SSE42:       # %bb.0:
-; SSE42-NEXT:    psubb %xmm3, %xmm1
-; SSE42-NEXT:    psubb %xmm2, %xmm0
+; SSE42-NEXT:    pxor %xmm3, %xmm1
+; SSE42-NEXT:    pxor %xmm2, %xmm0
 ; SSE42-NEXT:    por %xmm1, %xmm0
 ; SSE42-NEXT:    ptest %xmm0, %xmm0
 ; SSE42-NEXT:    sete %al
@@ -1407,19 +1407,15 @@ define i1 @bool_reduction_v16i16(<16 x i16> %x, <16 x i16> %y) {
 ;
 ; AVX1-LABEL: bool_reduction_v16i16:
 ; AVX1:       # %bb.0:
-; AVX1-NEXT:    vextractf128 $1, %ymm1, %xmm2
-; AVX1-NEXT:    vextractf128 $1, %ymm0, %xmm3
-; AVX1-NEXT:    vpsubb %xmm2, %xmm3, %xmm2
-; AVX1-NEXT:    vpsubb %xmm1, %xmm0, %xmm0
-; AVX1-NEXT:    vpor %xmm2, %xmm0, %xmm0
-; AVX1-NEXT:    vptest %xmm0, %xmm0
+; AVX1-NEXT:    vxorps %ymm1, %ymm0, %ymm0
+; AVX1-NEXT:    vptest %ymm0, %ymm0
 ; AVX1-NEXT:    sete %al
 ; AVX1-NEXT:    vzeroupper
 ; AVX1-NEXT:    retq
 ;
 ; AVX2-LABEL: bool_reduction_v16i16:
 ; AVX2:       # %bb.0:
-; AVX2-NEXT:    vpsubb %ymm1, %ymm0, %ymm0
+; AVX2-NEXT:    vpxor %ymm1, %ymm0, %ymm0
 ; AVX2-NEXT:    vptest %ymm0, %ymm0
 ; AVX2-NEXT:    sete %al
 ; AVX2-NEXT:    vzeroupper
@@ -1427,9 +1423,9 @@ define i1 @bool_reduction_v16i16(<16 x i16> %x, <16 x i16> %y) {
 ;
 ; AVX512-LABEL: bool_reduction_v16i16:
 ; AVX512:       # %bb.0:
-; AVX512-NEXT:    vpcmpeqw %ymm1, %ymm0, %k0
-; AVX512-NEXT:    kortestw %k0, %k0
-; AVX512-NEXT:    setb %al
+; AVX512-NEXT:    vpxor %ymm1, %ymm0, %ymm0
+; AVX512-NEXT:    vptest %ymm0, %ymm0
+; AVX512-NEXT:    sete %al
 ; AVX512-NEXT:    vzeroupper
 ; AVX512-NEXT:    retq
   %a = icmp eq <16 x i16> %x, %y
@@ -1452,14 +1448,14 @@ define i1 @bool_reduction_v32i8(<32 x i8> %x, <32 x i8> %y) {
 ; SSE2-NEXT:    pcmpeqb %xmm2, %xmm0
 ; SSE2-NEXT:    pand %xmm1, %xmm0
 ; SSE2-NEXT:    pmovmskb %xmm0, %eax
-; SSE2-NEXT:    cmpw $-1, %ax
+; SSE2-NEXT:    xorl $65535, %eax # imm = 0xFFFF
 ; SSE2-NEXT:    sete %al
 ; SSE2-NEXT:    retq
 ;
 ; SSE42-LABEL: bool_reduction_v32i8:
 ; SSE42:       # %bb.0:
-; SSE42-NEXT:    psubb %xmm3, %xmm1
-; SSE42-NEXT:    psubb %xmm2, %xmm0
+; SSE42-NEXT:    pxor %xmm3, %xmm1
+; SSE42-NEXT:    pxor %xmm2, %xmm0
 ; SSE42-NEXT:    por %xmm1, %xmm0
 ; SSE42-NEXT:    ptest %xmm0, %xmm0
 ; SSE42-NEXT:    sete %al
@@ -1467,19 +1463,15 @@ define i1 @bool_reduction_v32i8(<32 x i8> %x, <32 x i8> %y) {
 ;
 ; AVX1-LABEL: bool_reduction_v32i8:
 ; AVX1:       # %bb.0:
-; AVX1-NEXT:    vextractf128 $1, %ymm1, %xmm2
-; AVX1-NEXT:    vextractf128 $1, %ymm0, %xmm3
-; AVX1-NEXT:    vpsubb %xmm2, %xmm3, %xmm2
-; AVX1-NEXT:    vpsubb %xmm1, %xmm0, %xmm0
-; AVX1-NEXT:    vpor %xmm2, %xmm0, %xmm0
-; AVX1-NEXT:    vptest %xmm0, %xmm0
+; AVX1-NEXT:    vxorps %ymm1, %ymm0, %ymm0
+; AVX1-NEXT:    vptest %ymm0, %ymm0
 ; AVX1-NEXT:    sete %al
 ; AVX1-NEXT:    vzeroupper
 ; AVX1-NEXT:    retq
 ;
 ; AVX2-LABEL: bool_reduction_v32i8:
 ; AVX2:       # %bb.0:
-; AVX2-NEXT:    vpsubb %ymm1, %ymm0, %ymm0
+; AVX2-NEXT:    vpxor %ymm1, %ymm0, %ymm0
 ; AVX2-NEXT:    vptest %ymm0, %ymm0
 ; AVX2-NEXT:    sete %al
 ; AVX2-NEXT:    vzeroupper
@@ -1487,9 +1479,9 @@ define i1 @bool_reduction_v32i8(<32 x i8> %x, <32 x i8> %y) {
 ;
 ; AVX512-LABEL: bool_reduction_v32i8:
 ; AVX512:       # %bb.0:
-; AVX512-NEXT:    vpcmpeqb %ymm1, %ymm0, %k0
-; AVX512-NEXT:    kortestd %k0, %k0
-; AVX512-NEXT:    setb %al
+; AVX512-NEXT:    vpxor %ymm1, %ymm0, %ymm0
+; AVX512-NEXT:    vptest %ymm0, %ymm0
+; AVX512-NEXT:    sete %al
 ; AVX512-NEXT:    vzeroupper
 ; AVX512-NEXT:    retq
   %a = icmp eq <32 x i8> %x, %y

@@ -281,8 +281,8 @@ bool CodeGenAction::beginSourceFileAction() {
 
   if (ci.getInvocation().getFrontendOpts().features.IsEnabled(
           Fortran::common::LanguageFeature::OpenMP)) {
-    setOffloadModuleInterfaceAttributes(
-        *mlirModule, ci.getInvocation().getLangOpts().OpenMPIsDevice);
+    setOffloadModuleInterfaceAttributes(*mlirModule,
+                                        ci.getInvocation().getLangOpts());
     setOffloadModuleInterfaceTargetAttribute(*mlirModule, tm->getTargetCPU(),
                                              tm->getTargetFeatureString());
   }
@@ -666,7 +666,7 @@ void CodeGenAction::generateLLVMIR() {
   // Create the pass pipeline
   fir::createMLIRToLLVMPassPipeline(pm, level, opts.StackArrays,
                                     opts.Underscoring, opts.getDebugInfo());
-  mlir::applyPassManagerCLOptions(pm);
+  (void)mlir::applyPassManagerCLOptions(pm);
 
   // run the pass manager
   if (!mlir::succeeded(pm.run(*mlirModule))) {
