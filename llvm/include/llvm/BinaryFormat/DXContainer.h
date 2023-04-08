@@ -1,4 +1,4 @@
-//===-- llvm/BinaryFormat/DXContainer.h - The DXBC file format --*- C++/-*-===//
+﻿//===-- llvm/BinaryFormat/DXContainer.h - The DXBC file format --*- C++/-*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -25,16 +25,10 @@ namespace llvm {
 // parts are similar to sections in other object file formats. The File format
 // structure is roughly:
 
-// ┌────────────────────────────────┐
-// │             Header             │
-// ├────────────────────────────────┤
-// │              Part              │
-// ├────────────────────────────────┤
-// │              Part              │
-// ├────────────────────────────────┤
-// │              ...               │
-// └────────────────────────────────┘
-
+// 笏娯楳笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏・// 笏・            Header             笏・// 笏懌楳笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏､
+// 笏・             Part              笏・// 笏懌楳笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏､
+// 笏・             Part              笏・// 笏懌楳笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏､
+// 笏・             ...               笏・// 笏披楳笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏・
 namespace dxbc {
 
 inline Triple::EnvironmentType getShaderStage(uint32_t Kind) {
