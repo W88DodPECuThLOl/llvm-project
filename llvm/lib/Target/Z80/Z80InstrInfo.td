@@ -17,6 +17,71 @@
 
 include "Z80InstrFormats.td"
 
+// パターンの命令(set、add、mul等)は、下ので定義されている
+// include/llvm/Target/TargetSelectionDAG.td
+
+def NOP       : Z80InstXYZ<0,0,0, "nop">;
+
+// include\llvm\CodeGen\SDNodeProperties.td
+//   def SDNPOutGlue     : SDNodeProperty;   // Write a flag result
+//   def SDNPInGlue      : SDNodeProperty;   // Read a flag operand
+
+
+// EX AF,AF'用
+//
+// 出力ノード：２個、入力ノード：２個
+// 制約条件：全部のノードの型が同じ
+def SDT_Z80EX : SDTypeProfile<2, 2,
+  [SDTCisSameAs<0, 1>, SDTCisSameAs<2, 3>, SDTCisSameAs<0, 2>]>;
+def SDN_Z80EX : SDNode<"Z80ISD::EX", SDT_Z80EX, [SDNPOutGlue]>; // @todo SDNodePropertyがよくわからないので、調べること！
+
+// ex af, af'
+def EX_AF_AF : Z80InstXYZ<0,1,0, "ex", "af, af'", "",
+  (outs RC16AF:$dst1, RC16AF2:$dst2), (ins  RC16AF:$src1, RC16AF2:$src2),
+  [(set RC16AF:$dst1, RC16AF2:$dst2, (SDN_Z80EX RC16AF:$src1, RC16AF2:$src2))]>;
+
+
+// halt
+let hasSideEffects = true in
+def HALT : Z80InstXYZ<1,6,6, "halt">;
+
+// ld r8, r8
+let isMoveReg = 1 in
+def LD_r8_r8 : Z80Inst<(outs RC8:$dst), (ins RC8:$src), [(set RC8:$dst, RC8:$src)], "ld\t{$dst, $src}"> {
+  bits<3> dst;
+  bits<3> src;
+  let Size = 1;
+  // 7 6 5 4 3 2 1 0
+  // x x y y y z z z
+  let Inst{7-6} = 1;
+  let Inst{5-3} = dst;
+  let Inst{2-0} = src;
+}
+
+// SDTBinaryArithWithFlagsOut - RES1, FLAGS = op LHS, RHS
+def SDT_BinaryArithWithFlagsOut : SDTypeProfile<2, 2, [
+  SDTCisInt<0>,       // 出力ノード１の条件 整数型
+  SDTCisVT<1, i8>,    // 出力ノード２の条件 8bit整数値
+  SDTCisSameAs<2, 0>, // 入力ノード１の条件 出力ノード１と同じ型
+  SDTCisSameAs<3, 0>  // 入力ノード２の条件 出力ノード１と同じ型
+]>;
+def SDN_Z80ADD : SDNode<"Z80ISD::ADD", SDT_BinaryArithWithFlagsOut, [SDNPOutGlue]>;
+// add a, r8
+let Defs = [A, F], Uses = [A], isAdd = true in
+def ADD_a_r8 : Z80Inst<(outs), (ins RC8:$src),
+  [(set A, F, (SDN_Z80ADD A, RC8:$src))],
+  "add\ta, {$src}"> {
+  bits<3> src;
+  let Size = 1;
+  // 7 6 5 4 3 2 1 0
+  // x x y y y z z z
+  let Inst{7-6} = 2;
+  let Inst{5-3} = 0; // add
+  let Inst{2-0} = src;
+}
+
+/*
+
 //===----------------------------------------------------------------------===//
 // Z80 Type Profiles.
 //===----------------------------------------------------------------------===//
@@ -148,7 +213,6 @@ let Defs = [A, FLAGS], Uses = [A] in {
 let isMoveReg = 1 in
 def LD8rr : IRyRz<0x40, (outs GR8:$Ry), (ins GR8:$Rz), "ld\t{$Ry, $Rz}", []>;
 
-
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
   // 8-bit load immediate
   // x = 6 LD r[y], n
@@ -158,10 +222,9 @@ let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
     "ld\t{$Rp, $Imm}", [(set GR16:$Rp, imm:$Imm)]>;
 }
 
-
 // ADD A, r
 let Constraints = "$dst = $dst_a" in {
-  def ADDA8 : IRz<0x80, (outs OnlyA:$dst_a), (ins OnlyA:$dst, GR8:$Rz),
+  def ADDA8 : IRz<0x80, (outs RC8A:$dst_a), (ins RC8A:$dst, RC8:$Rz),
     "add\t{$dst_a, $Rz}", [(set OnlyA:$dst_a, (add OnlyA:$dst, GR8:$Rz))]>;
 }
 
@@ -187,11 +250,6 @@ let Constraints = "$dst = $dst_a" in {
 
 
 
-
-
-
-
-/*
 
 
 

@@ -26,6 +26,9 @@ class raw_pwrite_stream;
 
 Target &getTheZ80Target();
 
+
+
+
 MCCodeEmitter *createZ80MCCodeEmitter(const MCInstrInfo &MCII,
                                          MCContext &Ctx);
 
@@ -45,5 +48,8 @@ createZ80ELFObjectWriter(uint8_t OSABI);
 // Defines symbolic names for Z80 instructions.
 #define GET_INSTRINFO_ENUM
 #include "Z80GenInstrInfo.inc"
+
+#define GET_SUBTARGETINFO_ENUM
+#include "Z80GenSubtargetInfo.inc"
 
 #endif

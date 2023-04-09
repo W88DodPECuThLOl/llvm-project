@@ -5,6 +5,7 @@
 #ifndef LLVM_LIB_TARGET_Z80_Z80TARGETMACHINE_H
 #define LLVM_LIB_TARGET_Z80_Z80TARGETMACHINE_H
 
+#include "Z80Subtarget.h"
 #include "MCTargetDesc/Z80MCTargetDesc.h"
 
 #include "llvm/CodeGen/Passes.h"
@@ -17,12 +18,25 @@
 namespace llvm {
 class Z80TargetMachine : public LLVMTargetMachine {
   std::unique_ptr<TargetLoweringObjectFile> TLOF;
+  Z80Subtarget Subtarget;
+
+  mutable StringMap<std::unique_ptr<Z80Subtarget>> SubtargetMap;
 
 public:
   Z80TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                     StringRef FS, const TargetOptions &Options,
                     std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM,
                     CodeGenOpt::Level OL, bool JIT);
+
+  ~Z80TargetMachine() override;
+
+  const Z80Subtarget *getSubtargetImpl() const { return &Subtarget; }
+
+  const Z80Subtarget *getSubtargetImpl(const Function &F) const override;
+
+  MachineFunctionInfo *
+  createMachineFunctionInfo(BumpPtrAllocator &Allocator, const Function &F,
+                            const TargetSubtargetInfo *STI) const override;
 
   // Pass Pipeline Configuration
   TargetPassConfig *createPassConfig(PassManagerBase &PM) override;

@@ -19,6 +19,7 @@ class Prefix<bits<3> n> {
   field bits<3> Prefix = n;
 }
 
+class NONE     : Prefix<0>;
 class DD       : Prefix<1>;
 class FD       : Prefix<2>;
 class ED       : Prefix<3>;
@@ -51,8 +52,7 @@ class FDCB     : Prefix<6>;
 // class Instruction : InstructionEncoding
 
 
-class Z80Inst<dag outs, dag ins, string asmstr>
-  : Instruction {
+class Z80Inst<dag outputs = (outs), dag inputs = (ins), list<dag> pattern = [], string asmstr = "", string constraints = ""> : Instruction {
   let Namespace = "Z80";
 
   // Z80のオペコード
@@ -62,16 +62,35 @@ class Z80Inst<dag outs, dag ins, string asmstr>
   // 0xDD,0xFDなどのプレフィックス
   bits<3> Prefix = 0;
 
-  dag OutOperandList = outs;
-  dag InOperandList = ins;
+  let OutOperandList = outputs;
+  let InOperandList = inputs;
+  let Pattern = pattern;
+  // The .s format to print the instruction with.
+  let AsmString = asmstr;
+  let Constraints = constraints;
 
   // Target-specific flags. This becomes the TSFlags field in TargetInstrDesc.
   let TSFlags{2-0} = Prefix;
-
-  // The .s format to print the instruction with.
-  let AsmString = asmstr;
 }
 
+class Z80InstXYZ<bits<2> x, bits<3> y, bits<3> z,
+  string mnemonic, string arguments = "", string constraints = "",
+  dag outputs = (outs), dag inputs = (ins), list<dag> pattern = [],
+  int size = 1>
+  : Z80Inst<outputs, inputs, pattern, !strconcat(mnemonic, arguments), constraints> {
+
+  // 7 6 5 4 3 2 1 0
+  // x x y y y z z z
+  let Inst{7-6} = x;
+  let Inst{5-3} = y;
+  let Inst{2-0} = z;
+
+  // Size - Size of encoded instruction, or zero if the size cannot be determined
+  // from the opcode.
+  let Size = size;
+}
+
+/*
 class PseudoI<dag outs, dag ins, list<dag> pattern>
   : Z80Inst<outs, ins, ""> {
 
@@ -230,3 +249,5 @@ class Irst<bits<8> opc, dag outs, dag ins, string asmstr, list<dag> pattern>
   bits<16> Imm;
   let Inst{5-3} = Imm{5-3};
 }
+
+*/

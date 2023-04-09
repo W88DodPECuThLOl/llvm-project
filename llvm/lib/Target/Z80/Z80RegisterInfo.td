@@ -12,20 +12,13 @@
 //===----------------------------------------------------------------------===//
 
 // レジスタの定義
-// @param n    レジスタ名
-// @param Enc  backendでのレジスタ識別子？
-// @param Cost コスト
-class Z80Reg<string n, bits<16> Enc = 0, list<int> Cost = [0]>
-  : Register<n> {
-  // C++のnamespaceになる？
-  let Namespace  = "Z80";
-
-  // backendでのレジスタ識別子？
-  let HWEncoding = Enc;
-
-  // レジスタ使った時のコスト？
-  let CostPerUse = Cost;
-
+// @param name レジスタ名
+// @param enc  backendでのレジスタ識別子
+// @param cost コスト
+class Z80Reg<string name, bits<16> enc = -1, list<int> cost = [0]> : Register<name> {
+  let Namespace  = "Z80"; // C++のnamespace
+  let HWEncoding = enc;   // backendでのレジスタ識別子
+  let CostPerUse = cost;  // レジスタ使った時のコスト
   // メモ）letは親クラスにより設定された値を上書きする
 }
 
@@ -41,22 +34,20 @@ class Z80Reg<string n, bits<16> Enc = 0, list<int> Cost = [0]>
 //
 // 例）Z80SubRegIndex<8, 8>; // 8～15ビットを占有する
 // 例）Z80SubRegIndex<8, 0>; // 0～7ビットを占有する
-// メモ）16ビットレジスタを定義するときに組み合わせて使っている。
-class Z80SubRegIndex<int size, int offset = 0> : SubRegIndex<size, offset> {
-  let Namespace = "Z80";
+// メモ）16ビットレジスタを定義するときに組み合わせて使用
+class Z80SubRegIndex<int size, int offset> : SubRegIndex<size, offset> {
+  let Namespace  = "Z80"; // C++のnamespace
 }
 
 def subreg_hi : Z80SubRegIndex<8, 8>; // 16ビットレジスタの上位8ビット部分
 def subreg_lo : Z80SubRegIndex<8, 0>; // 16ビットレジスタの下位8ビット部分
 
 // サブレジスタで構成されている16ビットレジスタ
-// @param n       レジスタ名
+// @param name    レジスタ名
 // @param Enc     backendでのレジスタ識別子？
 // @param subregs サブレジスタ
 // @param Cost    コスト
-class Z80RegWithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [], list<int> Cost = [0]>
-  : Z80Reg<n, Enc, Cost> {
-
+class Z80RegPair<string name, bits<16> enc, list<Register> subregs = [], list<int> cost = [0]> : Z80Reg<name, enc, cost> {
   // レジスタを構成するサブレジスタの要素
   //
   // 例）HLレジスタは、HレジスタとLレジスタから構成されるので、[H, L]を設定。
@@ -83,14 +74,65 @@ class Z80RegWithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [],
   let CoveredBySubRegs = 1;
 }
 
+//===----------------------------------------------------------------------===//
+//  Registers
+//===----------------------------------------------------------------------===//
+
+// 8 bit registers
+def A   : Z80Reg<"a", 7>;
+def F   : Z80Reg<"f">;
+def B   : Z80Reg<"b", 0>;
+def C   : Z80Reg<"c", 1>;
+def D   : Z80Reg<"d", 2>;
+def E   : Z80Reg<"e", 3>;
+def H   : Z80Reg<"h", 4>;
+def L   : Z80Reg<"l", 5>;
+def IXH : Z80Reg<"ixh", 4, [1]>;
+def IXL : Z80Reg<"ixl", 5, [1]>;
+def IYH : Z80Reg<"iyh", 4, [1]>;
+def IYL : Z80Reg<"iyl", 5, [1]>;
+
+def A2  : Z80Reg<"a2", 7>;
+def F2  : Z80Reg<"f2">;
+def B2  : Z80Reg<"b2", 0>;
+def C2  : Z80Reg<"c2", 1>;
+def D2  : Z80Reg<"d2", 2>;
+def E2  : Z80Reg<"e2", 3>;
+def H2  : Z80Reg<"h2", 4>;
+def L2  : Z80Reg<"l2", 5>;
+
+// 16 bit registers
+def BC : Z80RegPair<"bc", 0, [B,   C]>;
+def DE : Z80RegPair<"de", 1, [D,   E]>;
+def HL : Z80RegPair<"hl", 2, [H,   L]>;
+def AF : Z80RegPair<"af", 3, [A,   F]>;
+def IX : Z80RegPair<"ix", 2, [IXH, IXL], [1]>;
+def IY : Z80RegPair<"iy", 2, [IYH, IYL], [1]>;
+
+def BC2 : Z80RegPair<"bc2", 0, [B2, C2]>;
+def DE2 : Z80RegPair<"de2", 1, [D2, E2]>;
+def HL2 : Z80RegPair<"hl2", 2, [H2, L2]>;
+def AF2 : Z80RegPair<"af2", 3, [A2, F2]>;
+
+// misc registers
+def SP : Z80Reg<"sp", 3>;
+def PC : Z80Reg<"pc">;
+def I  : Z80Reg<"i">;
+def R  : Z80Reg<"r">;
+
+
+//===----------------------------------------------------------------------===//
+//  Register Class Definitions...
+//
+
 // 8ビットレジスタのクラス（まとまり）
 // @param reglist レジスタリスト
 //
 // メモ）レジスタが確保される（割り当てられる）ときの順番を設定
-class Z80Reg8Class<dag reglist>
+class Z80RegClass8<dag reglist>
   : RegisterClass<
     "Z80", // namespace
-    [i8],  // レジスタタイプ
+    [i8],  // レジスタの型
     8,     // アライメント
     reglist> {
 }
@@ -99,52 +141,27 @@ class Z80Reg8Class<dag reglist>
 // @param reglist レジスタリスト
 //
 // メモ）レジスタが確保される（割り当てられる）ときの順番を設定
-class Z80Reg16Class<dag reglist>
-  : RegisterClass<"Z80", [i16], 8, reglist> {
-}
-
-//===----------------------------------------------------------------------===//
-//  Registers
-//===----------------------------------------------------------------------===//
-
-// 8 bit registers
-def A : Z80Reg<"a", 7>;
-def B : Z80Reg<"b", 0>;
-def C : Z80Reg<"c", 1>;
-def D : Z80Reg<"d", 2>;
-def E : Z80Reg<"e", 3>;
-def H : Z80Reg<"h", 4>;
-def L : Z80Reg<"l", 5>;
-def XH : Z80Reg<"xh", 4, [1]>;
-def XL : Z80Reg<"xl", 5, [1]>;
-def YH : Z80Reg<"yh", 4, [1]>;
-def YL : Z80Reg<"yl", 5, [1]>;
-
-// Flags register
-def FLAGS : Z80Reg<"f">;
-
-// 16 bit registers
-def BC : Z80RegWithSubRegs<"bc", 0, [B, C]>;
-def DE : Z80RegWithSubRegs<"de", 1, [D, E]>;
-def HL : Z80RegWithSubRegs<"hl", 2, [H, L]>;
-def AF : Z80RegWithSubRegs<"af", 3, [A, FLAGS]>;
-def IX : Z80RegWithSubRegs<"ix", 2, [XH, XL], [1]>;
-def IY : Z80RegWithSubRegs<"iy", 2, [YH, YL], [1]>;
-
-def SP : Z80Reg<"sp">;
-def PC : Z80Reg<"pc">;
-
-def GR8  : Z80Reg8Class<(add A, B, C, D, E, H, L)>;
-def GR16 : Z80Reg16Class<(add BC, DE, HL, IX, IY)>;
-def BR16 : Z80Reg16Class<(add BC, DE, HL)>;
-def IR16 : Z80Reg16Class<(add IX, IY)>;
-
-def EXR16 : Z80Reg16Class<(add HL, DE)>;
-
-def OnlyA : Z80Reg8Class<(add A)>;
-// HLレジスタだけ使用可能
-def ONLY_HL : Z80Reg16Class<(add HL)>;
+class Z80RegClass16<dag reglist> : RegisterClass<"Z80", [i16], 8, reglist> {}
 
 
-// メモ）IXH,IXL,IYH,IYLの扱いは？
+
+
+
+def RC8  : Z80RegClass8<(add A, B, C, D, E, H, L)>;
+def RC16 : Z80RegClass16<(add BC, DE, HL, IX, IY)>;
+
+def RC_EXR16 : Z80RegClass16<(add HL, DE)>;
+
+// Fレジスタだけ
+def RC8F : Z80RegClass8<(add F)>;
+// Aレジスタだけ
+def RC8A : Z80RegClass8<(add A)>;
+// HLレジスタだけ
+def RC16HL : Z80RegClass16<(add HL)>;
+// AFレジスタだけ
+def RC16AF : Z80RegClass16<(add AF)>;
+// AF'レジスタだけ
+def RC16AF2 : Z80RegClass16<(add AF2)>;
+
+
 // メモ）裏レジスタの扱いは？

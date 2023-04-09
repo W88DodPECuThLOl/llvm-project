@@ -908,6 +908,18 @@ enum {
 #include "ELFRelocs/CSKY.def"
 };
 
+// Z80 specific e_flags
+enum : unsigned {
+  EF_Z80_MACH_Z80 = 0x01,
+  EF_Z80_MACH_Z180 = 0x02,
+  EF_Z80_MACH_R800 = 0x03,
+  EF_Z80_MACH_EZ80_Z80 = 0x04,
+  EF_Z80_MACH_EZ80_ADL = 0x84,
+  EF_Z80_MACH_GBZ80 = 0x05,
+  EF_Z80_MACH_Z80N = 0x06,
+  EF_Z80_MACH_MSK = 0xff,
+};
+
 // ELF Relocation types for Z80
 enum {
 #include "ELFRelocs/Z80.def"
